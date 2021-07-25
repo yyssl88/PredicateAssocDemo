@@ -28,6 +28,11 @@ class PAssoc(object):
     def reset(self):
         # return observation with zero predicate
         self.current_state = np.zeros(len(self.attrs))
+        #return copy.deepcopy(self.current_state)
+
+    def initialAction(self, random_seed):
+        action = np.random.randint(0, len(self.attrs))
+        self.current_state[action] = 1.0
         return copy.deepcopy(self.current_state)
 
     def buildPLI(self):
@@ -67,6 +72,12 @@ class PAssoc(object):
                 attr_arr.append(self.attrs[i])
         return attr_arr
 
+    def transformAttrInverse(self, attr_arr):
+        state = np.zeros(len(self.attrs))
+        for e in attr_arr:
+            state[e] = 1.0
+        return state
+
     def step(self, action):
         base_action = np.zeros((len(self.attrs)))
         base_action[action] = 1.0
@@ -83,11 +94,51 @@ class PAssoc(object):
         reward = supp - self.supp_taus
 
         done = False
-        if reward <= 0:
+        if reward < 0:
             done = True
 
         # update state
         self.current_state = next_state
         return copy.deepcopy(self.current_state), reward, done
 
+
+    def test(self, maxLHS, numREEs):
+        data = []
+        for step in range(numREEs):
+            test_one = {}
+            np.random.seed(step * 2000)
+            num = np.random.choice(maxLHS, 1)[0] + 1
+            np.random.seed(step * 3000)
+            attrs_sc = np.random.choice(len(self.attrs), num + 1, replace=False)
+            test_one['current'] = [self.attrs[e] for e in attrs_sc[:-1]]
+            test_one['next'] = self.attrs[attrs_sc[-1]]
+            # calculate support
+            attrs_temp = [e for e in test_one['current']]
+            attrs_temp += [test_one['next']]
+            supp = self.cal_supp(attrs_temp, self.satisfied_tuples)
+            if supp >= self.supp_taus:
+                test_one['label'] = 1.0
+            else:
+                test_one['label'] = 0.0
+            data.append(test_one)
+        return data
+
+    def test_np(self, maxLHS, numREEs):
+        data = np.zeros((numREEs, len(self.attrs) + 1 + 1))
+        for step in range(numREEs):
+            test_one = {}
+            np.random.seed(step * 2000)
+            num = np.random.choice(maxLHS, 1)[0] + 1
+            np.random.seed(step * 3000)
+            attrs_sc = np.random.choice(len(self.attrs), num + 1, replace=False)
+            data[step][attrs_sc[:-1]] = 1.0
+            data[step][-2] = attrs_sc[-1]
+            # calculate support
+            attrs_temp = [self.attrs[e] for e in attrs_sc]
+            supp = self.cal_supp(attrs_temp, self.satisfied_tuples)
+            if supp >= self.supp_taus:
+                data[step][-1] = 1.0
+            else:
+                data[step][-1] = 0.0
+        return data
 

@@ -112,16 +112,37 @@ class DeepQNetwork:
         self.memory_counter += 1
 
     def choose_action(self, observation):
+        unselected = []
+        for sc, e in enumerate(observation):
+            if e == 0.0:
+                unselected.append(sc)
+        if len(unselected) <= 0:
+            return -1
         # to have batch dimension when feed into tf placeholder
         observation = observation[np.newaxis, :]
 
         if np.random.uniform() < self.epsilon:
             # forward feed the observation and get q value for every actions
             actions_value = self.sess.run(self.q_eval, feed_dict={self.s: observation})
-            action = np.argmax(actions_value)
+            #action = np.argmax(actions_value)
+            actions_value = np.hstack(actions_value)
+            action_values_s = [[i, e] for i, e in enumerate(actions_value)]
+            action_values_s = sorted(action_values_s, key = lambda x : x[1], reverse=1)
+            action = -1
+            for e in action_values_s:
+                if e[0] in unselected:
+                    action = e[0]
+                    break
         else:
-            action = np.random.randint(0, self.n_actions)
+            #action = np.random.randint(0, self.n_actions)
+            action_sc = np.random.randint(0, len(unselected))
+            action = unselected[action_sc]
         return action
+
+    def predictCorrelation(self, observation, nextAction):
+        observation = observation[np.newaxis, :]
+        actions_value = self.sess.run(self.q_eval, feed_dict={self.s : observation})
+        return np.hstack(actions_value)[int(nextAction)] > 0.0
 
     def learn(self):
         # check to replace target parameters
