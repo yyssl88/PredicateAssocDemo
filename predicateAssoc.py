@@ -43,27 +43,46 @@ class PAssoc(object):
                     continue
                 self.satisfied_tuples[attr].append(df.index.to_list())
 
-    def cal_supp(self, attr_set, satisfied_tuples):
+    # attr_set: X; attr_rhs: Y
+    def cal_supp(self, attr_set, attr_rhs, satisfied_tuples):
         # save the id of tuples that satisfy the same attribute of attr_set
-        res = satisfied_tuples[attr_set[0]]
+        res_lhs = satisfied_tuples[attr_set[0]]
         for i in range(1, len(attr_set)):
             new_res = []
-            for tid_set in res:
+            for tid_set in res_lhs:
                 for tid_set2 in satisfied_tuples[attr_set[i]]:
                     intersection = list(set(tid_set).intersection(set(tid_set2)))
                     if len(intersection) <= 1:  # change this for partial order predicates.
                         continue
                     new_res.append(intersection)
-            res = new_res
+            res_lhs = new_res
+
+        # save the id of tuples that satisfy the same attribute of both attr_set and attr_rhs
+        res_rule = []
+        for tid_set in res_lhs:
+            for tid_set2 in satisfied_tuples[attr_rhs]:
+                intersection = list(set(tid_set).intersection(set(tid_set2)))
+                if len(intersection) > 1:  # change this for partial order predicates.
+                    res_rule.append(intersection)
+        print("res_lhs:", res_lhs)
+        print("res_rule:", res_rule)
+
         # calculate support
-        if len(res) == 0:
-            return 0
-        supp = 0
+        if len(res_lhs) == 0:
+            return 0, 0, 0
         m = 2
-        for tid_set in res:
+        lhs_supp = 0
+        for tid_set in res_lhs:
             n = len(tid_set)
-            supp += math.factorial(n) // (math.factorial(m) * math.factorial(n - m))  # C(n, m)
-        return supp
+            lhs_supp += math.factorial(n) // (math.factorial(m) * math.factorial(n - m))  # C(n, m)
+        rule_supp = 0
+        for tid_set in res_rule:
+            n = len(tid_set)
+            rule_supp += math.factorial(n) // (math.factorial(m) * math.factorial(n - m))  # C(n, m)
+        conf = rule_supp * 1.0 / lhs_supp
+        print(attr_set, "->", attr_rhs, ", lhs_supp:", lhs_supp * 2, ", supp:", rule_supp * 2, ", conf:", conf, "\n")
+        return lhs_supp, rule_supp, conf
+
 
     def transformAttr(self, state):
         attr_arr = []
@@ -90,7 +109,7 @@ class PAssoc(object):
         if len(attr_arr) == 0:
             supp = 0;
         else:
-            supp = self.cal_supp(attr_arr, self.satisfied_tuples)
+            supp, null, null = self.cal_supp(attr_arr, "", self.satisfied_tuples)
         reward = supp - self.supp_taus
 
         done = False
@@ -115,7 +134,7 @@ class PAssoc(object):
             # calculate support
             attrs_temp = [e for e in test_one['current']]
             attrs_temp += [test_one['next']]
-            supp = self.cal_supp(attrs_temp, self.satisfied_tuples)
+            supp, null, null = self.cal_supp(attrs_temp, "", self.satisfied_tuples)
             if supp >= self.supp_taus:
                 test_one['label'] = 1.0
             else:
@@ -135,7 +154,7 @@ class PAssoc(object):
             data[step][-2] = attrs_sc[-1]
             # calculate support
             attrs_temp = [self.attrs[e] for e in attrs_sc]
-            supp = self.cal_supp(attrs_temp, self.satisfied_tuples)
+            supp, null, null = self.cal_supp(attrs_temp, "", self.satisfied_tuples)
             if supp >= self.supp_taus:
                 data[step][-1] = 1.0
             else:
