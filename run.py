@@ -54,7 +54,7 @@ def test(pComb, model, maxLHS, numREEs, ifGenTest, test_file):
 
 def main():
     parser = argparse.ArgumentParser(description="Learn Predicate Association")
-    parser.add_argument('-d', '--data_dir')
+    parser.add_argument('-d', '--data_dir', type=str, default="adult_data.csv")
     parser.add_argument('-t', '--threshold', type=float, default=0.2)
     parser.add_argument('-c', '--test_file', type=str, default="")
     parser.add_argument('-s', '--ifGenTest', type=bool, default=True)

@@ -22,6 +22,9 @@ def main():
     pAssoc.cal_supp(["way_of_voting", "date"], "voting_intention", pAssoc.satisfied_tuples)
     pAssoc.cal_supp(["way_of_voting", "date"], "election_phase", pAssoc.satisfied_tuples)
     pAssoc.cal_supp(["date", "county_desc"], "voting_intention", pAssoc.satisfied_tuples)
+    pAssoc.cal_supp(["county_desc"], "county_id", pAssoc.satisfied_tuples)
+    pAssoc.cal_supp(["city_id", "county_id"], "city", pAssoc.satisfied_tuples)
+    pAssoc.cal_supp(["city"], "county_id", pAssoc.satisfied_tuples)
 
 
 

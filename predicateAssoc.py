@@ -59,11 +59,12 @@ class PAssoc(object):
 
         # save the id of tuples that satisfy the same attribute of both attr_set and attr_rhs
         res_rule = []
-        for tid_set in res_lhs:
-            for tid_set2 in satisfied_tuples[attr_rhs]:
-                intersection = list(set(tid_set).intersection(set(tid_set2)))
-                if len(intersection) > 1:  # change this for partial order predicates.
-                    res_rule.append(intersection)
+        if attr_rhs != "":
+            for tid_set in res_lhs:
+                for tid_set2 in satisfied_tuples[attr_rhs]:
+                    intersection = list(set(tid_set).intersection(set(tid_set2)))
+                    if len(intersection) > 1:  # change this for partial order predicates.
+                        res_rule.append(intersection)
         # print("res_lhs:", res_lhs)
         # print("res_rule:", res_rule)
 
