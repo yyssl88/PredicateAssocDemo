@@ -5,7 +5,7 @@ import logging
 
 # only for rules containing variable predicates with operator being "="
 def main():
-    parser = argparse.ArgumentParser(description="Learn Predicate Association")
+    parser = argparse.ArgumentParser(description="Calculate Rule Support and Confidence")
     parser.add_argument('-d', '--data_dir', type=str, default="ncvoter.csv")
     parser.add_argument('-t', '--threshold', type=float, default=0.2)
     parser.add_argument('-c', '--test_file', type=str, default="")
@@ -17,10 +17,12 @@ def main():
         logging.info('[Argument] %s=%r' % (k, v))
 
     pAssoc = PAssoc(arg_dict["threshold"], arg_dict["data_dir"])
-
     pAssoc.cal_supp(["party"], "voting_intention", pAssoc.satisfied_tuples)
-
     pAssoc.cal_supp(["date", "voting_intention"], "election_phase", pAssoc.satisfied_tuples)
+    pAssoc.cal_supp(["way_of_voting", "date"], "voting_intention", pAssoc.satisfied_tuples)
+    pAssoc.cal_supp(["way_of_voting", "date"], "election_phase", pAssoc.satisfied_tuples)
+    pAssoc.cal_supp(["date", "county_desc"], "voting_intention", pAssoc.satisfied_tuples)
+
 
 
 if __name__ == "__main__":

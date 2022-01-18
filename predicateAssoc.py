@@ -64,8 +64,8 @@ class PAssoc(object):
                 intersection = list(set(tid_set).intersection(set(tid_set2)))
                 if len(intersection) > 1:  # change this for partial order predicates.
                     res_rule.append(intersection)
-        print("res_lhs:", res_lhs)
-        print("res_rule:", res_rule)
+        # print("res_lhs:", res_lhs)
+        # print("res_rule:", res_rule)
 
         # calculate support
         if len(res_lhs) == 0:
